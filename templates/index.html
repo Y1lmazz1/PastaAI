@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}PastAI - Hayalindeki Pastayı Tasarla{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Hayalindeki Pasta<br>Bir Tık Uzakta 🎂</h1>
+    <p>
+        Yapay zeka teknolojisiyle pasta tasarımını kendin yap.<br>
+        Tarifini yaz, AI görselini oluştursun, biz pişirelim.
+    </p>
+    <div class="hero-buttons">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('order') }}" class="btn large">✨ Hemen Tasarla</a>
+        {% else %}
+            <a href="{{ url_for('register') }}" class="btn large">Başla — Ücretsiz</a>
+            <a href="{{ url_for('login') }}" class="btn large secondary">Giriş Yap</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="features">
+    <div class="feature-card">
+        <div class="icon">🤖</div>
+        <h3>AI Destekli Tasarım</h3>
+        <p>Hayalindeki pastayı kelimelerle tarif et, yapay zeka gerçekçi bir görsel oluştursun.</p>
+    </div>
+    <div class="feature-card">
+        <div class="icon">🎂</div>
+        <h3>Kat Seçeneği</h3>
+        <p>1, 2 veya 3 katlı — senin zevkine, senin organizasyonuna özel boyut seçimi.</p>
+    </div>
+    <div class="feature-card">
+        <div class="icon">🚀</div>
+        <h3>Hızlı Sipariş</h3>
+        <p>Tasarımını onayladıktan sonra tek tıkla sipariş ver, ustalarımız işe başlasın.</p>
+    </div>
+</div>
+{% endblock %}

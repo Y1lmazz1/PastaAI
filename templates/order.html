@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% block title %}PastAI - Sipariş Oluştur{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tier-selection { display: flex; gap: 18px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap; }
+    
+    /* Kat Seçim Kartları */
+    .tier-card {
+        border: 2px solid #eee;
+        border-radius: 12px;
+        padding: 10px;
+        cursor: pointer;
+        width: 140px;
+        transition: all 0.3s ease;
+        background: white;
+        text-align: center;
+    }
+    .tier-card img { width: 100%; border-radius: 8px; margin-bottom: 8px; height: 100px; object-fit: cover; }
+    .tier-card.selected { border-color: var(--pink); background: #fff0f5; transform: scale(1.05); }
+    .tier-card p { font-size: 0.9rem; font-weight: bold; margin: 0; color: #333; }
+
+    /* Form Grupları */
+    .custom-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin: 25px 0;
+        text-align: left;
+    }
+    .option-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; font-size: 0.9rem; }
+    .option-group select, .option-group input[type="file"] { 
+        width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: #fafafa;
+    }
+
+    /* Referans Görsel Önizleme */
+    #ref-preview-container { 
+        margin-top: 10px; padding: 10px; border: 1px dashed var(--pink); border-radius: 10px; display: none; 
+    }
+    #ref-preview { max-width: 120px; border-radius: 5px; }
+
+    #preview-area { display: none; margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee; }
+    .loading-spinner { display: none; font-size: 1.1rem; font-weight: bold; color: var(--pink); margin: 20px 0; }
+    
+    .reset-link { color: var(--pink); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 0.9rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Pastanı Tasarla ✨</h1>
+    <p style="color:var(--text-light); margin-bottom: 30px;">Hayalindeki pastayı detaylandır, AI senin için çizsin.</p>
+
+    <form id="order-form" action="{{ url_for('order') }}" method="POST" enctype="multipart/form-data">
+        
+        <h3>① Kaç Katlı Olsun?</h3>
+        <div class="tier-selection">
+            <div class="tier-card" onclick="selectTier(1, this)">
+                <img src="{{ url_for('static', filename='templates_png/1-kat.png') }}">
+                <p>Tek Katlı</p>
+            </div>
+            <div class="tier-card" onclick="selectTier(2, this)">
+                <img src="{{ url_for('static', filename='templates_png/2-kat.png') }}">
+                <p>İki Katlı</p>
+            </div>
+            <div class="tier-card" onclick="selectTier(3, this)">
+                <img src="{{ url_for('static', filename='templates_png/3-kat.png') }}">
+                <p>Üç Katlı</p>
+            </div>
+        </div>
+
+        <h3>② Detayları Belirle</h3>
+        <div class="custom-options">
+            <div class="option-group">
+                <label>Krema & Aroma:</label>
+                <select id="flavor" name="flavor">
+                    <option value="">-- Seçiniz (Opsiyonel) --</option>
+                    <option value="vanilla white">Vanilyalı (Beyaz)</option>
+                    <option value="strawberry pink">Çilekli (Pembe)</option>
+                    <option value="chocolate dark brown">Çikolatalı (Siyah/Kahve)</option>
+                    <option value="pistachio green">Fıstıklı (Yeşil)</option>
+                    <option value="red velvet">Red Velvet (Kırmızı)</option>
+                </select>
+            </div>
+            <div class="option-group">
+                <label>Süsleme Tarzı:</label>
+                <select id="topping" name="topping">
+                    <option value="">-- Seçiniz (Opsiyonel) --</option>
+                    <option value="fresh flowers and pearls">Taze Çiçekler & İnciler</option>
+                    <option value="gold flakes and sparkles">Altın Varak & Işıltılar</option>
+                    <option value="seasonal fruits and berries">Meyve Taneleri</option>
+                    <option value="macarons and chocolate drips">Makaron & Çikolata Sosu</option>
+                </select>
+            </div>
+            <div class="option-group">
+
+                <label>Referans Görsel (Varsa):</label>
+                <input type="file" id="ref_image" accept="image/*" onchange="previewRef(this)">
+                <div id="ref-preview-container">
+                    <img id="ref-preview" src="#">
+                    <p style="font-size: 0.75rem; color:red; cursor:pointer;" onclick="clearRef()">Kaldır</p>
+                </div>
+            </div>
+            <div class="custom-options">
+    <div class="option-group">
+        <label>Dış Kaplama Türü:</label>
+    
+        <select id="finish" name="finish">
+            <option value="">-- Seçiniz (Opsiyonel) --</option>
+            <option value="naked cake with visible sponge layers">Naked (Katları Görünen Doğal)</option>
+            <option value="velvet chocolate spray coating">Kadife (Velvet) Kaplama</option>
+            <option value="shiny mirror glaze coating">Parlak Ayna (Mirror Glaze) Sos</option>
+            <option value="textured rustic buttercream strokes">Rustik Krem Şanti Darbeli</option>
+            <option value="smooth professional fondant icing">Pürüzsüz Şeker Hamuru</option>
+        </select>
+    </div>
+
+    <div class="option-group">
+        <label>Süsleme Malzemeleri:</label>
+        <select id="topping_materials" name="topping_materials">
+            <option value="">-- Seçiniz (Opsiyonel) --</option>
+            <option value="assorted fresh forest berries and mint leaves">Orman Meyveleri (Çilek, Böğürtlen)</option>
+            <option value="exotic sliced fruits and gold leaves">Egzotik Meyveler & Altın Varak</option>
+            <option value="crushed pistachios and roasted hazelnuts">Antep Fıstığı & Kavrulmuş Fındık</option>
+            <option value="hand-crafted sugar flowers and petals">El Yapımı Şeker Çiçekleri</option>
+            <option value="macarons and chocolate truffles">Makaronlar ve Çikolata Truffları</option>
+        </select>
+    </div>
+
+    <div class="option-group">
+        <label>Pasta Stili:</label>
+        <select id="cake_style" name="cake_style">
+            <option value="">-- Seçiniz (Opsiyonel) --</option>
+            <option value="minimalist and elegant">Minimalist ve Zarif</option>
+            <option value="dripping chocolate sauce from edges">Kenarlardan Akan Sos (Drip Cake)</option>
+            <option value="shabby chic vintage style with lace patterns">Dantel Desenli Vintage</option>
+            <option value="modern geometric patterns">Modern Geometrik Desenli</option>
+        </select>
+    </div>
+</div>
+        </div>
+
+        <input type="hidden" name="selected_tier" id="selected_tier">
+        <input type="hidden" name="generated_image_url" id="generated_image_url">
+
+        <h3>③ Özel Notların</h3>
+        <textarea name="prompt" id="prompt" rows="3" placeholder="Örn: Pastanın üzerine 'Mutlu Yıllar' yazılsın ve minik yıldızlar olsun..."></textarea>
+
+        <button type="button" id="design-btn" class="btn large" onclick="generateDesign()">🪄 Tasarımı Oluştur</button>
+
+        <div class="loading-spinner" id="loader">🍰 AI pastanı hayal ediyor, bu biraz sürebilir...</div>
+
+        <div id="preview-area">
+            <h3>İşte Senin İçin Hazırladığımız Tasarım!</h3>
+            <img id="generated-cake" src="" alt="AI Tasarımı">
+            <p class="preview-hint">Bu tasarım hoşuna gittiyse siparişi tamamlayabilirsin.</p>
+            <br>
+            <button type="submit" class="btn large success">✅ Bu Tasarımla Sipariş Ver</button>
+            <br>
+            <button type="button" class="reset-link" onclick="resetForm()">↩ Baştan Tasarlamak İstiyorum</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Kat seçimi için fonksiyon
+    function selectTier(val, el) {
+        document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        document.getElementById('selected_tier').value = val;
+    }
+
+    function previewRef(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('ref-preview').src = e.target.result;
+                document.getElementById('ref-preview-container').style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function clearRef() {
+        document.getElementById('ref_image').value = "";
+        document.getElementById('ref-preview-container').style.display = 'none';
+    }
+
+function generateDesign() {
+    // Verileri çek
+    const tier = document.getElementById('selected_tier').value;
+    const flavor = document.getElementById('flavor').value;
+    const finish = document.getElementById('finish').value;
+    const materials = document.getElementById('topping_materials').value;
+    const cakeStyle = document.getElementById('cake_style').value;
+    const userNote = document.getElementById('prompt').value.trim();
+    const refFile = document.getElementById('ref_image').files[0];
+
+    const designBtn = document.getElementById('design-btn');
+    const loader = document.getElementById('loader');
+    const previewArea = document.getElementById('preview-area');
+
+    designBtn.style.display = 'none';
+    loader.style.display = 'block';
+
+    let promptParts = [];
+
+    // --- KRİTİK MANTIK GÜNCELLEMESİ ---
+    if (userNote) {
+        // 1. EĞER NOT VARSA: Diğer seçimleri prompt'a HİÇ EKLEME
+        promptParts.push(`STRICT ORDER: Create a professional cake EXACTLY based on this description: ${userNote}.`);
+        promptParts.push("DO NOT add any classic decorations like fruits, flowers, or whipped cream unless specified in the text.");
+        if (tier) promptParts.push(`The structure must be ${tier} tiers.`);
+    } else {
+        // 2. EĞER NOT YOKSA: Klasik seçimleri ekle
+        promptParts.push("A professional artisanal cake.");
+        if (tier) promptParts.push(`${tier} tiers.`);
+        if (flavor) promptParts.push(`Color/Flavor: ${flavor}.`);
+        if (finish) promptParts.push(`Coating: ${finish}.`);
+        if (materials) promptParts.push(`Decorations: ${materials}.`);
+        if (cakeStyle) promptParts.push(`Style: ${cakeStyle}.`);
+    }
+
+    if (refFile) {
+        promptParts.push("Use the uploaded image ONLY for structural guidance.");
+    }
+
+    // Teknik Kalite Sabitleri
+    const technicalBase = "Professional food photography, FLUX high-fidelity, 8k, realistic edible textures, studio lighting, clean solid background. NO hands, NO humans, NO text.";
+
+    const finalPrompt = promptParts.join(" ") + " " + technicalBase;
+
+    // Form data hazırla ve gönder
+    const formData = new FormData();
+    formData.append('prompt', finalPrompt);
+    formData.append('tier', tier || "1");
+    if (refFile) formData.append('ref_image', refFile);
+
+    fetch('/generate-preview', { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(data => {
+        loader.style.display = 'none';
+        if (data.image_url) {
+            document.getElementById('generated-cake').src = data.image_url;
+            previewArea.style.display = 'block';
+            previewArea.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            alert("Hata oluştu.");
+            designBtn.style.display = 'inline-block';
+        }
+    });
+}
+
+    function resetForm() {
+        location.reload();
+    }
+</script>
+{% endblock %}

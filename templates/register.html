@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}PastAI - Kayıt Ol{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>🍰 PastAI</h1>
+    <h2>Yeni Hesap Oluştur</h2>
+
+    <form action="{{ url_for('register') }}" method="POST">
+        <label>Kullanıcı Adı</label>
+        <input type="text" name="username" placeholder="kullaniciadi" required autocomplete="username">
+
+        <label>Şifre</label>
+        <input type="password" name="password" placeholder="En az 6 karakter" required autocomplete="new-password">
+
+        <label>Hesap Türü</label>
+        <select name="role">
+            <option value="customer">🛒 Müşteriyim</option>
+            <option value="admin">🏪 Pastane Sahibiyim</option>
+        </select>
+
+        <br>
+        <button type="submit" class="btn large" style="width:100%;">Kayıt Ol</button>
+    </form>
+
+    <p>Zaten hesabın var mı? <a href="{{ url_for('login') }}">Giriş Yap</a></p>
+</div>
+{% endblock %}

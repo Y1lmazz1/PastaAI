@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}PastAI - Yönetim Paneli{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1000px;">
+    <h1>Yönetim Paneli 🏪</h1>
+    <p style="color:var(--text-light); margin-bottom: 30px;">
+        Toplam <strong>{{ orders|length }}</strong> sipariş bulunuyor.
+    </p>
+
+    {% if orders %}
+    <div style="overflow-x:auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Müşteri</th>
+                    <th>Kat</th>
+                    <th>Tarif</th>
+                    <th>Görsel</th>
+                    <th>Durum</th>
+                    <th>Tarih</th>
+                    <th>Güncelle</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><strong>#{{ order.id }}</strong></td>
+                    <td>{{ order.customer.username }}</td>
+                    <td style="text-align:center;">{{ order.tier_count }} Kat</td>
+                    <td style="max-width:180px; font-size:0.85rem; color:var(--text-light);">
+                        {{ order.prompt[:60] ~ '...' if order.prompt and order.prompt|length > 60 else order.prompt }}
+                    </td>
+                    <td>
+                        {% if order.image_source %}
+                            <img src="{{ url_for('static', filename=order.image_source) if not order.image_source.startswith('/') else order.image_source }}"
+                                 alt="Pasta" style="width:60px; height:60px; object-fit:cover; border-radius:8px;">
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ order.status | lower | replace(' ', '') }}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td style="font-size:0.82rem; color:var(--text-light);">
+                        {{ order.created_at.strftime('%d.%m.%Y %H:%M') }}
+                    </td>
+                    <td>
+                        <form action="{{ url_for('update_status', order_id=order.id) }}" method="POST" style="display:flex; gap:6px; align-items:center;">
+                            <select name="status" style="padding:6px 10px; font-size:0.82rem; margin:0;">
+                                <option value="Bekliyor"       {% if order.status == 'Bekliyor' %}selected{% endif %}>Bekliyor</option>
+                                <option value="Hazırlanıyor"   {% if order.status == 'Hazırlanıyor' %}selected{% endif %}>Hazırlanıyor</option>
+                                <option value="Teslim Edildi"  {% if order.status == 'Teslim Edildi' %}selected{% endif %}>Teslim Edildi</option>
+                            </select>
+                            <button type="submit" class="btn" style="padding:6px 14px; font-size:0.82rem;">Kaydet</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p style="color:var(--text-light); text-align:center; padding: 40px 0;">
+            Henüz hiç sipariş yok. 🍰
+        </p>
+    {% endif %}
+</div>
+{% endblock %}

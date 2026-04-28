@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}PastAI - Giriş Yap{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>🍰 PastAI</h1>
+    <h2>Tekrar Hoş Geldin!</h2>
+
+    <form action="{{ url_for('login') }}" method="POST">
+        <label>Kullanıcı Adı</label>
+        <input type="text" name="username" placeholder="kullaniciadi" required autocomplete="username">
+
+        <label>Şifre</label>
+        <input type="password" name="password" placeholder="••••••" required autocomplete="current-password">
+
+        <br>
+        <button type="submit" class="btn large" style="width:100%;">Giriş Yap</button>
+    </form>
+
+    <p>Henüz hesabın yok mu? <a href="{{ url_for('register') }}">Hemen Kayıt Ol</a></p>
+</div>
+{% endblock %}
