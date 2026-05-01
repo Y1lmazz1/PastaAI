@@ -12,17 +12,29 @@
 <nav>
     <a href="{{ url_for('index') }}" class="nav-logo">🍰 PastAI</a>
     <div class="nav-links">
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('order') }}">Sipariş Ver</a>
-            {% if current_user.role == 'admin' %}
-                <a href="{{ url_for('admin') }}">Yönetim Paneli</a>
-            {% endif %}
-            <a href="{{ url_for('logout') }}" class="btn" style="padding:8px 20px;">Çıkış</a>
+    {% if current_user.is_authenticated %}
+        
+        {# --- ADMİN GÖRÜNÜMÜ --- #}
+        {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('admin') }}" style="font-weight: bold; color: var(--pink-dark);">🚀 Yönetim Paneli</a>
+            <!-- Admin bazen test yapmak isterse diye Sipariş Ver'i tutabilirsin ama kalabalık dersen silebilirsin -->
+            <a href="{{ url_for('order') }}">Sipariş Test Et</a>
+
+        {# --- MÜŞTERİ GÖRÜNÜMÜ --- #}
         {% else %}
-            <a href="{{ url_for('login') }}">Giriş Yap</a>
-            <a href="{{ url_for('register') }}" class="btn" style="padding:8px 20px;">Kayıt Ol</a>
+            <a href="{{ url_for('order') }}">✨ Sipariş Ver</a>
+            <a href="{{ url_for('my_orders') }}">📦 Siparişlerim</a>
         {% endif %}
-    </div>
+
+        {# --- ORTAK ALAN --- #}
+        <a href="{{ url_for('logout') }}" class="btn" style="padding:8px 20px; margin-left: 10px; background: #ff4757;">Çıkış Yap</a>
+
+    {% else %}
+        {# --- GİRİŞ YAPMAMIŞ KULLANICI --- #}
+        <a href="{{ url_for('login') }}">Giriş Yap</a>
+        <a href="{{ url_for('register') }}" class="btn" style="padding:8px 20px;">Kayıt Ol</a>
+    {% endif %}
+</div>
 </nav>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
