@@ -1,7 +1,4 @@
-{% extends 'base.html' %}
-{% block title %}Siparişlerim - PastAI{% endblock %}
 
-{% block extra_css %}
 <style>
     /* Konteyner ve Başlık */
     .orders-grid {
@@ -219,13 +216,12 @@
                 </div>
             {% endfor %}
         </div>
-    {% else %}
+   
         <div style="text-align:center; padding: 80px 20px;">
             <div style="font-size: 4rem; margin-bottom: 20px;">🧁</div>
             <h2 style="color: #555;">Henüz hiç siparişin yok.</h2>
             <p style="color: #999; margin-bottom: 30px;">Hayalindeki pastayı birlikte tasarlamaya ne dersin?</p>
             <a href="{{ url_for('order') }}" class="action-btn primary" style="text-decoration: none; padding: 15px 30px;">Hemen Tasarla ✨</a>
         </div>
-    {% endif %}
+  
 </div>
-{% endblock %}
